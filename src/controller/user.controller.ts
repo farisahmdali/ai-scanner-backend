@@ -148,8 +148,26 @@ export class UserController {
 
     async getApplicants(userId: number, page: number, limit: number, search: string) {
         try {
-            const applicants = await Applicants.findAll({ where: { userId: userId, name: { [Op.like]: `%${search}%` }, email: { [Op.like]: `%${search}%` }, phone: { [Op.like]: `%${search}%` } }, offset: (page - 1) * limit, limit: limit, order: [['createdAt', 'DESC']] });
-            const total = await Applicants.count({ where: { userId: userId, name: { [Op.like]: `%${search}%` }, email: { [Op.like]: `%${search}%` }, phone: { [Op.like]: `%${search}%` } } });
+            // Build where clause: userId must match AND (if search exists, match name OR email OR phone)
+            const whereClause: any = { userId: userId };
+            
+            if (search && search.trim()) {
+                whereClause[Op.or] = [
+                    { name: { [Op.like]: `%${search}%` } },
+                    { email: { [Op.like]: `%${search}%` } },
+                    { phone: { [Op.like]: `%${search}%` } }
+                ];
+            }
+            
+            const applicants = await Applicants.findAll({ 
+                where: whereClause, 
+                offset: (page - 1) * limit, 
+                limit: limit, 
+                order: [['createdAt', 'DESC']] 
+            });
+            
+            const total = await Applicants.count({ where: whereClause });
+            
             return {
                 message: 'Applicants fetched successfully',
                 applicants: applicants,
