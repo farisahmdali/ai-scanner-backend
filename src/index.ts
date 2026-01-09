@@ -8,6 +8,12 @@ import path from 'path';
 
 dotenv.config();
 const app = express();
+app.use(cors({
+    origin:true,
+    credentials: true, // Allow cookies to be sent
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 sequelize.authenticate().then(() => {
     sequelize.sync({ alter: true }) // updates tables safely
@@ -18,12 +24,7 @@ sequelize.authenticate().then(() => {
     console.error('Unable to connect to the database:', err);
 });
 
-app.use(cors({
-    origin: 'http://localhost:5173', // Remove trailing slash
-    credentials: true, // Allow cookies to be sent
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-}));
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
